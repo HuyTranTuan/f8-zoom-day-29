@@ -1,6 +1,6 @@
 const url = new URL(window.location.href);
 const searchParams = url.searchParams;
-const id = searchParams.get('id');
+const id = parseInt(searchParams.get('id'));
 
 let currentPokemonId = null;
 
@@ -16,10 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadPokemon(id) {
   try {
     const [pokemon, pokemonSpecies] = await Promise.all([
-      fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then((res) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id.toString()}/`).then((res) =>
         res.json()
       ),
-      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then((res) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id.toString()}/`).then((res) =>
         res.json()
       ),
     ]);
@@ -43,12 +43,12 @@ async function loadPokemon(id) {
 
       if (id !== 1) {
         leftArrow.addEventListener("click", () => {
-          navigatePokemon(id - 1);
+          navigatePokemon(parseInt(id) - 1);
         });
       }
       if (id !== 1301) {
         rightArrow.addEventListener("click", () => {
-          navigatePokemon(id + 1);
+          navigatePokemon(parseInt(id) + 1);
         });
       }
 
@@ -57,7 +57,7 @@ async function loadPokemon(id) {
 
     return true;
   } catch (error) {
-    console.error("An error occured while fetching Pokemon data:", error);
+      console.error("An error occured while fetching Pokemon data:", error);
     return false;
   }
 }

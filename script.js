@@ -2,20 +2,22 @@ let pokemonList;
 
 sendRequest("GET","https://pokeapi.co/api/v2/pokemon?limit=1100&offset=0")
     .then((listPokemon) => {
-        pokemonList = listPokemon ? JSON.parse(listPokemon).results : [];
-        Promise.all(pokemonList.map(item => {
-            return sendRequest("GET", item.url);
+            pokemonList = listPokemon ? JSON.parse(listPokemon).results : [];
+            Promise.all(pokemonList.map(item => {
+                return sendRequest("GET", item.url);
         }))
         .then(results => {
             Promise.all(results.map(item => {
                 return sendRequest("GET", JSON.parse(item).sprites.front_default);
             }))
                 .then(poke => {
-                    let arr = results.map(item => JSON.parse(item))
-                    arr.forEach((item, index) => {
-                        item.img = poke[index];
+                        let arr = results.map(item => JSON.parse(item))
+                        arr.forEach((item, index) => {
+                            item.img = poke[index];
                     })
-                    render(arr);
+                    loadArr(arr);
+                    let loader = document.querySelector(".loader");
+                    loader.classList.add("close");
                 })
         })
     })
@@ -37,7 +39,7 @@ function sendRequest(method, url){
                 }
             }
         } catch (error) {
-        console.error("An error occured while fetching Pokemon data:", error);
+            console.error("An error occured while fetching Pokemon data:", error);
         return false;
         }
     });
@@ -68,7 +70,48 @@ function getTypeColor(type){
     }
 }
 
-async function render(pokemmonList){
+async function loadArr(pokemmonList){
+
+    const formSearch = document.createElement("form");
+    formSearch.id = "form-search";
+    formSearch.style.maxWidth = "350px";
+    formSearch.style.minWidth = "250px";
+    formSearch.style.margin = "auto";
+    
+    const formGroup = document.createElement("div");
+    formGroup.className = 'formgroup-controll';
+    formGroup.style.position = "relative";
+
+    const formInput = document.createElement("input");
+    formInput.className = "form-input";
+    formInput.style.width = "100%";
+    formInput.style.height = "100%";
+    formInput.style.padding = "10px 15px";
+    formInput.style.color = "#444444";
+    formInput.style.outline = "1px solid #444444";
+    formInput.style.border = "none";
+    formInput.style.borderRadius = "10px";
+    formInput.style.fontSize = "15px";
+    formInput.style.fontWeight = "700";
+    
+    const formSearchBtn = document.createElement("button");
+    formSearchBtn.style.display = "flex";
+    formSearchBtn.style.justifyContent = "center";
+    formSearchBtn.style.alignItems = "center";
+    formSearchBtn.style.position = "absolute";
+    formSearchBtn.style.top = "50%";
+    formSearchBtn.style.right = "-15px";
+    formSearchBtn.style.transform = "translateY(-50%)";
+    formSearchBtn.style.outline = "none";
+    formSearchBtn.style.border = "none";
+    formSearchBtn.style.backgroundColor = "transparent";
+    formSearchBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+</svg>`
+    formGroup.appendChild(formInput);
+    formGroup.appendChild(formSearchBtn);
+    formSearch.appendChild(formGroup);
+
 
     const logoContainer = document.createElement('div');
     logoContainer.style.textAlign = 'center';
@@ -81,8 +124,40 @@ async function render(pokemmonList){
     logo.style.aspectRatio = "2.5 / 1";
 
     logoContainer.appendChild(logo);
-    
+    await document.body.appendChild(logoContainer);
+    await document.body.appendChild(formSearch);
+    formSearch.addEventListener("submit", (event) => {
+        event.preventDefault();
+    })
+    formInput.addEventListener("input", (event)=>{
+        event.preventDefault();
+        let input = escapeHTML(event.target.value);
+        let array = pokemmonList.filter(pokemon => {
+            return pokemon.name.toLowerCase().includes(input);
+        });
+        let list = document.querySelector(".pokemon-list");
+        document.body.removeChild(list);
+        render(array);
+    })
 
+    render(pokemmonList);
+    
+}
+
+
+function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, function (m) {
+        return ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        })[m];
+    });
+}
+
+async function render(pokemmonList){
     const list = document.createElement('div');
     list.className = "pokemon-list";
     list.style.display = "flex";
@@ -91,10 +166,8 @@ async function render(pokemmonList){
     list.style.gap = "30px";
     list.style.listStyle = "none";
     list.style.margin = "auto";
-    list.style.height = "70vh";
     list.style.maxWidth = "90vw";
     list.style.width = "80%";
-    list.style.overflow = "auto";
     list.style.scrollBehavior = "smooth";
     list.style.padding = "20px";
 
@@ -104,8 +177,7 @@ async function render(pokemmonList){
             item.className = 'pokemon';
             item.style.border = `3px solid ${getTypeColor(pokemon.types[0].type.name)}`;
             item.style.borderRadius = "15px";
-            item.style.flex = "1 1 15%";
-            item.style.backgroundColor = "white";
+            
             
             const itemRedirect = document.createElement('a')
             itemRedirect.href = `./pokemon.html?id=${pokemon.id}`
@@ -145,13 +217,12 @@ async function render(pokemmonList){
             if(pokemon.types){
                 pokemon.types.forEach(pokemonType => {
                     const type = document.createElement("span");
+                    type.className = "pokemon-type";
                     type.style.backgroundColor = getTypeColor(pokemonType.type.name)
-                    type.style.fontSize = "16px";
-                    type.style.fontWeight = "500";
+                    
                     type.style.color = "white";
                     type.style.border = `1px solid ${getTypeColor(pokemonType.type.name)}`;
                     type.style.borderRadius = "10px";
-                    type.style.padding = "10px 15px";
                     type.textContent = pokemonType.type.name;
                     type.style.textTransform = 'capitalize';
                     type.style.fontWeight = '600';
@@ -166,7 +237,7 @@ async function render(pokemmonList){
         }
         
     })
-    await document.body.appendChild(logoContainer);
+
     await document.body.appendChild(list);
     document.body.style.backgroundColor = 'crimson';
 }
