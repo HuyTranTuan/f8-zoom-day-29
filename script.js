@@ -1,6 +1,6 @@
 let pokemonList;
 
-sendRequest("GET","https://pokeapi.co/api/v2/pokemon?limit=1100&offset=0")
+sendRequest("GET","https://pokeapi.co/api/v2/pokemon?limit=100&offset=0")
     .then((listPokemon) => {
             pokemonList = listPokemon ? JSON.parse(listPokemon).results : [];
             Promise.all(pokemonList.map(item => {
@@ -129,21 +129,29 @@ async function loadArr(pokemmonList){
     formSearch.addEventListener("submit", (event) => {
         event.preventDefault();
     })
-    formInput.addEventListener("input", (event)=>{
+
+    formInput.addEventListener("input", debounce((event)=>{
         event.preventDefault();
         let input = escapeHTML(event.target.value);
         let array = pokemmonList.filter(pokemon => {
             return pokemon.name.toLowerCase().includes(input);
         });
-        let list = document.querySelector(".pokemon-list");
-        document.body.removeChild(list);
+        let oldList = document.querySelector(".pokemon-list");
+        oldList && oldList.remove();
         render(array);
-    })
+    }, 300))
 
     render(pokemmonList);
     
 }
 
+function debounce(fn, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
 
 function escapeHTML(str) {
     return str.replace(/[&<>"']/g, function (m) {
@@ -170,6 +178,19 @@ async function render(pokemmonList){
     list.style.width = "80%";
     list.style.scrollBehavior = "smooth";
     list.style.padding = "20px";
+
+    // const fragment = document.createDocumentFragment(); // Sử dụng fragment
+    // fragment.className = "pokemon-fragment";
+    // fragment.style.display = "flex";
+    // fragment.style.flexWrap = "wrap";
+    // fragment.style.justifyContent = "center";
+    // fragment.style.gap = "30px";
+    // fragment.style.fragmentStyle = "none";
+    // fragment.style.margin = "auto";
+    // fragment.style.maxWidth = "90vw";
+    // fragment.style.width = "80%";
+    // fragment.style.scrollBehavior = "smooth";
+    // fragment.style.padding = "20px";
 
     await pokemmonList.forEach(pokemon => {
         if(pokemon){
@@ -234,10 +255,12 @@ async function render(pokemmonList){
 
             item.appendChild(itemRedirect);
             list.appendChild(item);
+            // fragment.appendChild(item);
         }
         
     })
 
     await document.body.appendChild(list);
+    // await document.body.appendChild(fragment);
     document.body.style.backgroundColor = 'crimson';
 }

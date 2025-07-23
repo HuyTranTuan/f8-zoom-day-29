@@ -16,10 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadPokemon(id) {
   try {
     const [pokemon, pokemonSpecies] = await Promise.all([
-      fetch(`https://pokeapi.co/api/v2/pokemon/${id.toString()}/`).then((res) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(id.toString())}/`).then((res) =>
         res.json()
       ),
-      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id.toString()}/`).then((res) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(id.toString())}/`).then((res) =>
         res.json()
       ),
     ]);
@@ -52,7 +52,7 @@ async function loadPokemon(id) {
         });
       }
 
-      window.history.pushState({}, "", `./pokemon.html?id=${id}`);
+      window.history.pushState({}, "", `./pokemon.html?id=${encodeURIComponent(id)}`);
     }
 
     return true;
@@ -177,7 +177,7 @@ function displayPokemonDetails(pokemon) {
   ).textContent = `#${String(id).padStart(3, "0")}`;
 
   const imageElement = document.querySelector(".detail-img-wrapper img");
-  imageElement.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  imageElement.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${encodeURIComponent(id)}.png`;
   imageElement.alt = name;
 
   const typeWrapper = document.querySelector(".power-wrapper");
